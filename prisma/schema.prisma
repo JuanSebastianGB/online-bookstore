@@ -1,0 +1,93 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  role      UserRole @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Define the relationship with reviews
+  reviews Review[]
+  // Define the relationship with orders
+  orders  Order[]
+}
+
+// Define the Review entity for user reviews and ratings
+model Review {
+  id        Int      @id @default(autoincrement())
+  content   String
+  rating    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Define the relationship with the User who posted the review
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+
+  // Define the relationship with the Book being reviewed
+  book   Book @relation(fields: [bookId], references: [id])
+  bookId Int
+}
+
+// Define the Genre entity for book categorization
+model Genre {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Define the relationship with books
+  books Book[]
+}
+
+// Define the Book entity for book management
+model Book {
+  id          Int      @id @default(autoincrement())
+  title       String
+  author      String
+  description String
+  price       Float
+  coverImage  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Define the relationship with genres
+  genres Genre[]
+
+  // Define the relationship with reviews
+  reviews Review[]
+  // Define the relationship with orders
+  orders  Order[]
+}
+
+// Define the Order entity for shopping cart and orders
+model Order {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Define the relationship with the User who placed the order
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+
+  // Define the relationship with books
+  books Book[]
+}
+
+// Define the UserRole enum for user roles
+enum UserRole {
+  USER
+  ADMIN
+}
