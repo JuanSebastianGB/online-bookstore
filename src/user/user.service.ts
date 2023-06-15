@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { encryptPassword } from 'src/utils';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
@@ -9,9 +10,10 @@ export class UserService {
   constructor(private prismaService: PrismaService) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
-    const { email, password } = createUserDto;
+    const { password: pwd } = createUserDto;
+    const password = await encryptPassword(pwd);
     return await this.prismaService.user.create({
-      data: { ...createUserDto },
+      data: { ...createUserDto, password },
     });
   }
 
