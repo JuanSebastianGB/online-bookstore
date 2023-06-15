@@ -7,6 +7,7 @@ import { UpdateGenreDto } from './dto/update-genre.dto';
 @Injectable()
 export class GenreService {
   constructor(private prismaService: PrismaService) {}
+
   async create(createGenreDto: CreateGenreDto): Promise<Genre | undefined> {
     const genre = await this.prismaService.genre.create({
       data: {

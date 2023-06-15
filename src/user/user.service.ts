@@ -6,9 +6,13 @@ import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly prismaService: PrismaService) {}
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
+  constructor(private prismaService: PrismaService) {}
+
+  async create(createUserDto: CreateUserDto): Promise<User> {
+    const { email, password } = createUserDto;
+    return await this.prismaService.user.create({
+      data: { ...createUserDto },
+    });
   }
 
   async findAll(): Promise<User[]> {
@@ -24,6 +28,14 @@ export class UserService {
   }
 
   async findByEmail(email: string): Promise<User | undefined> {
+    const user = await this.prismaService.user.findUnique({
+      where: { email },
+    });
+    if (!user) throw new Error('User not found');
+    return user;
+  }
+
+  async findByUsername(email: string): Promise<User | undefined> {
     const user = await this.prismaService.user.findUnique({
       where: { email },
     });
