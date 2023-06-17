@@ -8,7 +8,7 @@ import {
   Param,
   ParseIntPipe,
   Patch,
-  Post
+  Post,
 } from '@nestjs/common';
 import { CreateGenreDto } from './dto/create-genre.dto';
 import { UpdateGenreDto } from './dto/update-genre.dto';
@@ -64,5 +64,10 @@ export class GenreController {
     } catch (e) {
       throw new NotFoundException();
     }
+  }
+
+  @Get(':id/books')
+  async findBooksByGenreId(@Param('id', ParseIntPipe) id) {
+    return await this.genreService.findBooksByGenreId(id);
   }
 }

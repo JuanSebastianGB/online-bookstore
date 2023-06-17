@@ -8,18 +8,49 @@ import { UpdateBookDto } from './dto/update-book.dto';
 export class BookService {
   constructor(private prismaService: PrismaService) {}
   async create(createBookDto: CreateBookDto) {
+    const { genres, ...data } = createBookDto;
     return await this.prismaService.book.create({
-      data: { ...createBookDto },
+      data: {
+        ...data,
+        genres: {
+          connect: genres.map((genreId) => ({ id: genreId })),
+        },
+      },
+      include: {
+        genres: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
     });
   }
 
   async findAll(): Promise<Book[]> {
-    return await this.prismaService.book.findMany();
+    return await this.prismaService.book.findMany({
+      include: {
+        genres: {
+          select: {
+            name: true,
+            id: true,
+          },
+        },
+      },
+    });
   }
 
   async findOne(id: number): Promise<Book | undefined> {
     const book = await this.prismaService.book.findUnique({
       where: { id },
+      include: {
+        genres: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
     });
     if (!book) throw new Error('Book not found');
     return book;
@@ -27,9 +58,23 @@ export class BookService {
 
   async update(id: number, updateBookDto: UpdateBookDto): Promise<Book> {
     const book = await this.findOne(id);
+    const { genres, ...data } = updateBookDto;
     return await this.prismaService.book.update({
       where: { id: book.id },
-      data: { ...updateBookDto },
+      data: {
+        ...data,
+        genres: {
+          set: genres ? genres.map((genreId) => ({ id: genreId })) : undefined,
+        },
+      },
+      include: {
+        genres: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
     });
   }
 
@@ -38,5 +83,16 @@ export class BookService {
     return await this.prismaService.book.delete({
       where: { id: book.id },
     });
+  }
+
+  async findGenresByBookId(id: number) {
+    const book = await this.prismaService.book.findUnique({
+      where: { id },
+      include: {
+        genres: true,
+      },
+    });
+    if (!book) throw new Error('Book not found');
+    return book.genres;
   }
 }

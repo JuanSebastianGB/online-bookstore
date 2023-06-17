@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Genre } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateGenreDto } from './dto/create-genre.dto';
@@ -46,5 +46,21 @@ export class GenreService {
       where: { id: genre.id },
     });
     return await this.findAll();
+  }
+
+  async findBooksByGenreId(id: number) {
+    const genre = await this.prismaService.genre.findUnique({
+      where: { id },
+      include: {
+        books: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+      },
+    });
+    if (!genre) throw new NotFoundException();
+    return genre.books;
   }
 }

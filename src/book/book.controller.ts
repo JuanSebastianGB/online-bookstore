@@ -66,4 +66,13 @@ export class BookController {
       throw new NotFoundException();
     }
   }
+
+  @Get(':id/genres')
+  async findGenresByBookId(@Param('id', ParseIntPipe) id) {
+    try {
+      return await this.bookService.findGenresByBookId(id);
+    } catch (error) {
+      throw new NotFoundException();
+    }
+  }
 }
