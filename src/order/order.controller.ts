@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -18,8 +19,14 @@ export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
   @Post()
-  create(@Body() createOrderDto: CreateOrderDto) {
-    return this.orderService.create(createOrderDto);
+  async create(@Body() createOrderDto: CreateOrderDto) {
+    try {
+      return await this.orderService.create(createOrderDto);
+    } catch (error) {
+      if (error.code === 'P2002')
+        throw new BadRequestException('Order already exists');
+      throw new BadRequestException();
+    }
   }
 
   @Get()
