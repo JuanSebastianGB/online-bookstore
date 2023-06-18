@@ -10,15 +10,31 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
+
+import {
+  ApiBadRequestResponse,
+  ApiCreatedResponse,
+  ApiNoContentResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { AuthorService } from './author.service';
 import { CreateAuthorDto } from './dto/create-author.dto';
 import { UpdateAuthorDto } from './dto/update-author.dto';
+import { Author } from './entities/author.entity';
 
+@ApiTags('authors')
 @Controller('author')
 export class AuthorController {
   constructor(private readonly authorService: AuthorService) {}
 
   @Post()
+  @ApiCreatedResponse({
+    description: 'The record has been successfully created.',
+    type: Author,
+  })
+  @ApiBadRequestResponse({ description: 'Bad request.' })
   async create(@Body() createAuthorDto: CreateAuthorDto) {
     try {
       return await this.authorService.create(createAuthorDto);
@@ -31,12 +47,21 @@ export class AuthorController {
   }
 
   @Get()
+  @ApiOkResponse({
+    description: 'The authors have been successfully retrieved.',
+    type: [Author],
+  })
   async findAll() {
     return this.authorService.findAll();
   }
 
   @Get(':id')
-  async findOne(@Param('id', ParseIntPipe) id) {
+  @ApiOkResponse({
+    description: 'The author has been successfully retrieved.',
+    type: Author,
+  })
+  @ApiNotFoundResponse({ description: 'Author not found.' })
+  async findOne(@Param('id', ParseIntPipe) id: number) {
     try {
       return await this.authorService.findOne(id);
     } catch (error) {
@@ -47,8 +72,14 @@ export class AuthorController {
   }
 
   @Patch(':id')
+  @ApiOkResponse({
+    description: 'The author has been successfully updated.',
+    type: Author,
+  })
+  @ApiBadRequestResponse({ description: 'Bad request.' })
+  @ApiNotFoundResponse({ description: 'Author not found.' })
   async update(
-    @Param('id', ParseIntPipe) id,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateAuthorDto: UpdateAuthorDto,
   ) {
     try {
@@ -63,7 +94,12 @@ export class AuthorController {
   }
 
   @Delete(':id')
-  async remove(@Param('id', ParseIntPipe) id) {
+  @ApiNoContentResponse({
+    description: 'The author has been successfully deleted.',
+  })
+  @ApiBadRequestResponse({ description: 'Bad request.' })
+  @ApiNotFoundResponse({ description: 'Author not found.' })
+  async remove(@Param('id', ParseIntPipe) id: number) {
     try {
       return this.authorService.remove(id);
     } catch (error) {
@@ -74,7 +110,13 @@ export class AuthorController {
   }
 
   @Get(':id/books')
-  async findBooksByAuthorId(@Param('id', ParseIntPipe) id) {
+  @Get(':id/books')
+  @ApiOkResponse({
+    description: 'The books by the author have been successfully retrieved.',
+    type: [Author],
+  })
+  @ApiNotFoundResponse({ description: 'Author not found.' })
+  async findBooksByAuthorId(@Param('id', ParseIntPipe) id: number) {
     try {
       return this.authorService.findBooksByAuthorId(id);
     } catch (error) {

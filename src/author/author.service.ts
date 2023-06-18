@@ -30,6 +30,9 @@ export class AuthorService {
   async findOne(id: number): Promise<Author | undefined> {
     const author = await this.prismaService.author.findUnique({
       where: { id },
+      include: {
+        books: true,
+      },
     });
     if (!author) throw new Error('Author not found');
     return author;
@@ -61,7 +64,18 @@ export class AuthorService {
   async findBooksByAuthorId(id: number): Promise<Book[]> {
     const author = await this.prismaService.author.findUnique({
       where: { id },
-      include: { books: true },
+      include: {
+        books: {
+          include: {
+            genres: {
+              select: { name: true, id: true },
+            },
+            author: {
+              select: { name: true, id: true },
+            },
+          },
+        },
+      },
     });
     return author.books;
   }
