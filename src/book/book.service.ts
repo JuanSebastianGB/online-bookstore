@@ -13,7 +13,7 @@ export class BookService {
       data: {
         ...data,
         genres: {
-          connect: genres.map((genreId) => ({ id: genreId })),
+          connect: genres?.map((genreId) => ({ id: genreId })),
         },
       },
       include: {
@@ -50,6 +50,7 @@ export class BookService {
             name: true,
           },
         },
+        author: true,
       },
     });
     if (!book) throw new Error('Book not found');

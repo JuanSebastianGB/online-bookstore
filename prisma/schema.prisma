@@ -56,7 +56,6 @@ model Genre {
 model Book {
   id          Int      @id @default(autoincrement())
   title       String   @unique
-  author      String
   description String
   price       Float
   coverImage  String?
@@ -67,9 +66,11 @@ model Book {
   genres Genre[]
 
   // Define the relationship with reviews
-  reviews Review[]
+  reviews  Review[]
   // Define the relationship with orders
-  orders  Order[]
+  orders   Order[]
+  author   Author?  @relation(fields: [authorId], references: [id])
+  authorId Int?
 }
 
 // Define the Order entity for shopping cart and orders
@@ -90,4 +91,14 @@ model Order {
 enum UserRole {
   USER
   ADMIN
+}
+
+model Author {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Define the relationship with books
+  books Book[]
 }

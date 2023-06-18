@@ -4,9 +4,6 @@ export class CreateBookDto {
   @MinLength(3)
   title: string;
 
-  @MinLength(3)
-  author: string;
-
   @MinLength(15)
   description: string;
 
