@@ -5,10 +5,11 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { ApiHeader } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import { LocalGuard } from './local-auth.guard';
 
 @Controller('auth')
+@ApiTags('auth')
 export class AuthController {
   @UseGuards(LocalGuard)
   @Post('login')
