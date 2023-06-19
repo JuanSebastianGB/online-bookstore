@@ -4,14 +4,19 @@ import {
   Controller,
   Delete,
   Get,
+  HttpStatus,
   NotFoundException,
   Param,
+  ParseFilePipeBuilder,
   ParseIntPipe,
   Patch,
   Post,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -21,6 +26,8 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
+import { unlink } from 'fs/promises';
+import { diskStorage } from 'multer';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { BookService } from './book.service';
 import { CreateBookDto } from './dto/create-book.dto';
@@ -40,11 +47,45 @@ export class BookController {
     type: CreateBookDto,
   })
   @ApiBody({ type: CreateBookDto })
-  async create(@Body() createBookDto: CreateBookDto) {
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (req, file, callback) => {
+          const randomName = Array(32)
+            .fill(null)
+            .map(() => Math.round(Math.random() * 16).toString(16))
+            .join('');
+          const extension = file.mimetype.split('/')[1];
+          return callback(null, `${randomName}.${extension}`);
+        },
+      }),
+    }),
+  )
+  async create(
+    @UploadedFile(
+      new ParseFilePipeBuilder()
+        .addFileTypeValidator({
+          fileType: /image\/jpeg|image\/png|application\/pdf/,
+        })
+        .addMaxSizeValidator({
+          maxSize: 1000000,
+        })
+        .build({
+          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+        }),
+    )
+    file: Express.Multer.File,
+    @Body() createBookDto: CreateBookDto,
+  ) {
     try {
-      const book = await this.bookService.create(createBookDto);
+      const book = await this.bookService.create({
+        ...createBookDto,
+        coverImage: file?.filename,
+      });
       return book;
     } catch (error) {
+      if (file?.filename) await unlink(`./uploads/${file.filename}`);
       if (error.code === 'P2002')
         throw new BadRequestException('Book already exists');
       if (error.code === 'P2025')

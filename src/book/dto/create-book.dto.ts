@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import { IsNumber, IsOptional, Max, Min, MinLength } from 'class-validator';
 
 export class CreateBookDto {
@@ -13,6 +14,7 @@ export class CreateBookDto {
   @IsNumber()
   @Min(10)
   @Max(200)
+  @Type(() => Number)
   @ApiProperty()
   price: number;
 
@@ -25,7 +27,8 @@ export class CreateBookDto {
   @ApiProperty({ type: [Number] })
   genres: number[];
 
-  @IsNumber()
+  @IsNumber({ allowInfinity: false, allowNaN: false })
+  @Type(() => Number)
   @ApiProperty({
     description: 'The author id',
     default: 1,
