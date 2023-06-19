@@ -105,7 +105,7 @@ export class BookController {
 
   @Delete(':id')
   @ApiParam({ name: 'id', required: true })
-  async remove(@Param('id', ParseIntPipe) id) {
+  async remove(@Param('id', ParseIntPipe) id: number) {
     try {
       return await this.bookService.remove(id);
     } catch (error) {
