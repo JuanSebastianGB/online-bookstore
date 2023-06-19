@@ -3,11 +3,12 @@ import {
   Body,
   Controller,
   Delete,
+  FileTypeValidator,
   Get,
-  HttpStatus,
+  MaxFileSizeValidator,
   NotFoundException,
   Param,
-  ParseFilePipeBuilder,
+  ParseFilePipe,
   ParseIntPipe,
   Patch,
   Post,
@@ -20,6 +21,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBearerAuth,
   ApiBody,
+  ApiConsumes,
   ApiCreatedResponse,
   ApiOkResponse,
   ApiParam,
@@ -47,6 +49,23 @@ export class BookController {
     type: CreateBookDto,
   })
   @ApiBody({ type: CreateBookDto })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'File upload',
+    type: 'multipart/form-data',
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+        createBookDto: {
+          $ref: '#/components/schemas/CreateBookDto',
+        },
+      },
+    },
+  })
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
@@ -64,16 +83,13 @@ export class BookController {
   )
   async create(
     @UploadedFile(
-      new ParseFilePipeBuilder()
-        .addFileTypeValidator({
-          fileType: /image\/jpeg|image\/png|application\/pdf/,
-        })
-        .addMaxSizeValidator({
-          maxSize: 1000000,
-        })
-        .build({
-          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
-        }),
+      new ParseFilePipe({
+        validators: [
+          new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' }),
+          new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 2 }),
+        ],
+        fileIsRequired: false,
+      }),
     )
     file: Express.Multer.File,
     @Body() createBookDto: CreateBookDto,
