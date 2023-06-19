@@ -27,17 +27,29 @@ export class BookService {
     });
   }
 
-  async findAll(): Promise<Book[]> {
-    return await this.prismaService.book.findMany({
-      include: {
-        genres: {
-          select: {
-            name: true,
-            id: true,
+  async findAll(
+    skip: number,
+    take: number,
+  ): Promise<{
+    books: Book[];
+    total: number;
+  }> {
+    if (!skip || skip < 0) skip = 0;
+    if (!take || take < 0) take = 10;
+    const [books, total] = await Promise.all([
+      this.prismaService.book.findMany({
+        include: {
+          genres: {
+            select: {
+              name: true,
+              id: true,
+            },
           },
         },
-      },
-    });
+      }),
+      this.prismaService.book.count(),
+    ]);
+    return { books, total };
   }
 
   async findOne(id: number): Promise<Book | undefined> {

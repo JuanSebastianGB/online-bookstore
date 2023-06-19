@@ -17,8 +17,23 @@ export class UserService {
     });
   }
 
-  async findAll(): Promise<User[]> {
-    return await this.prismaService.user.findMany();
+  async findAll(
+    skip: number,
+    take: number,
+  ): Promise<{
+    users: User[];
+    total: number;
+  }> {
+    if (!skip || skip < 0) skip = 0;
+    if (!take || take < 0) take = 10;
+    const [users, total] = await Promise.all([
+      this.prismaService.user.findMany({
+        skip,
+        take,
+      }),
+      this.prismaService.user.count(),
+    ]);
+    return { users, total };
   }
 
   async findOne(id: number): Promise<User | undefined> {
@@ -49,7 +64,8 @@ export class UserService {
     return `This action updates a #${id} user`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(id: number) {
+    await this.findOne(id);
+    await this.prismaService.user.delete({ where: { id } });
   }
 }

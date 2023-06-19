@@ -21,9 +21,13 @@ export class AuthorService {
     return author;
   }
 
-  async findAll(): Promise<Author[]> {
+  async findAll(skip: number, take: number): Promise<Author[]> {
+    if (!skip || skip < 0) skip = 0;
+    if (!take || take < 0) take = 10;
     return await this.prismaService.author.findMany({
       include: { books: true },
+      skip,
+      take,
     });
   }
 
@@ -77,6 +81,7 @@ export class AuthorService {
         },
       },
     });
-    return author.books;
+
+    return author?.books || [];
   }
 }

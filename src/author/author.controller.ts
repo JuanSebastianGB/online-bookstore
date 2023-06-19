@@ -9,14 +9,17 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 
 import {
   ApiBadRequestResponse,
+  ApiBody,
   ApiCreatedResponse,
   ApiNoContentResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
+  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthorService } from './author.service';
@@ -32,14 +35,16 @@ export class AuthorController {
   @Post()
   @ApiCreatedResponse({
     description: 'The record has been successfully created.',
-    type: Author,
+    type: CreateAuthorDto,
   })
   @ApiBadRequestResponse({ description: 'Bad request.' })
+  @ApiBody({ type: CreateAuthorDto })
   async create(@Body() createAuthorDto: CreateAuthorDto) {
     try {
       return await this.authorService.create(createAuthorDto);
     } catch (error) {
-      console.log({ error });
+      if (error.code === 'P2018')
+        throw new BadRequestException('Books not found');
       if (error.code === 'P2002')
         throw new BadRequestException('Author already exists');
       throw new BadRequestException();
@@ -51,8 +56,14 @@ export class AuthorController {
     description: 'The authors have been successfully retrieved.',
     type: [Author],
   })
-  async findAll() {
-    return this.authorService.findAll();
+  @ApiQuery({ name: 'skip', required: false })
+  @ApiQuery({ name: 'take', required: false })
+  async findAll(@Query('skip') skip?: number, @Query('take') take?: number) {
+    try {
+      return await this.authorService.findAll(+skip, +take);
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
   }
 
   @Get(':id')
@@ -65,8 +76,7 @@ export class AuthorController {
     try {
       return await this.authorService.findOne(id);
     } catch (error) {
-      if (error.code === 'P2016')
-        throw new NotFoundException('Author not found');
+      if (error.code === 'P2016') throw new NotFoundException();
       throw new BadRequestException();
     }
   }
@@ -74,10 +84,11 @@ export class AuthorController {
   @Patch(':id')
   @ApiOkResponse({
     description: 'The author has been successfully updated.',
-    type: Author,
+    type: CreateAuthorDto,
   })
   @ApiBadRequestResponse({ description: 'Bad request.' })
   @ApiNotFoundResponse({ description: 'Author not found.' })
+  @ApiBody({ type: UpdateAuthorDto })
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateAuthorDto: UpdateAuthorDto,
@@ -110,7 +121,6 @@ export class AuthorController {
   }
 
   @Get(':id/books')
-  @Get(':id/books')
   @ApiOkResponse({
     description: 'The books by the author have been successfully retrieved.',
     type: [Author],
@@ -118,8 +128,9 @@ export class AuthorController {
   @ApiNotFoundResponse({ description: 'Author not found.' })
   async findBooksByAuthorId(@Param('id', ParseIntPipe) id: number) {
     try {
-      return this.authorService.findBooksByAuthorId(id);
+      return await this.authorService.findBooksByAuthorId(id);
     } catch (error) {
+      console.error(error);
       if (error.code === 'P2016')
         throw new NotFoundException('Author not found');
       throw new BadRequestException();

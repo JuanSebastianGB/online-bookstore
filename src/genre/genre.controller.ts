@@ -9,16 +9,24 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
+import { ApiBody, ApiOkResponse, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { Book } from 'src/book/entities/book.entity';
 import { CreateGenreDto } from './dto/create-genre.dto';
 import { UpdateGenreDto } from './dto/update-genre.dto';
 import { GenreService } from './genre.service';
 
+@ApiTags('genres')
 @Controller('genre')
 export class GenreController {
   constructor(private readonly genreService: GenreService) {}
 
   @Post()
+  @ApiOkResponse({
+    description: 'The genre has been successfully created',
+    type: CreateGenreDto,
+  })
   async create(@Body() createGenreDto: CreateGenreDto) {
     try {
       return await this.genreService.create(createGenreDto);
@@ -30,12 +38,26 @@ export class GenreController {
   }
 
   @Get()
-  async findAll() {
-    return await this.genreService.findAll();
+  @ApiOkResponse({
+    description: 'The genres have been successfully retrieved',
+    type: [CreateGenreDto],
+  })
+  @ApiQuery({ name: 'skip', required: false })
+  @ApiQuery({ name: 'take', required: false })
+  async findAll(@Query('skip') skip?: number, @Query('take') take?: number) {
+    try {
+      return await this.genreService.findAll(+skip, +take);
+    } catch (error) {
+      throw new BadRequestException();
+    }
   }
 
   @Get(':id')
-  async findOne(@Param('id', ParseIntPipe) id) {
+  @ApiOkResponse({
+    description: 'The genres have been successfully retrieved',
+    type: CreateGenreDto,
+  })
+  async findOne(@Param('id', ParseIntPipe) id: number) {
     try {
       return await this.genreService.findOne(id);
     } catch (e) {
@@ -44,13 +66,21 @@ export class GenreController {
   }
 
   @Patch(':id')
+  @ApiOkResponse({
+    description: 'The genre has been successfully updated',
+    type: UpdateGenreDto,
+  })
+  @ApiBody({ type: UpdateGenreDto })
   async update(
-    @Param('id', ParseIntPipe) id,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateGenreDto: UpdateGenreDto,
   ) {
     try {
       return await this.genreService.update(id, updateGenreDto);
     } catch (e) {
+      console.error(e);
+      if (e.message === 'Genre not found')
+        throw new NotFoundException('Genre not found');
       if (e.code === 'P2002')
         throw new BadRequestException('Genre name already exists');
       throw new BadRequestException();
@@ -58,7 +88,7 @@ export class GenreController {
   }
 
   @Delete(':id')
-  async remove(@Param('id', ParseIntPipe) id) {
+  async remove(@Param('id', ParseIntPipe) id: number) {
     try {
       return await this.genreService.remove(id);
     } catch (e) {
@@ -67,7 +97,11 @@ export class GenreController {
   }
 
   @Get(':id/books')
-  async findBooksByGenreId(@Param('id', ParseIntPipe) id) {
+  @ApiOkResponse({
+    description: 'The books have been successfully retrieved',
+    type: [Book],
+  })
+  async findBooksByGenreId(@Param('id', ParseIntPipe) id: number) {
     return await this.genreService.findBooksByGenreId(id);
   }
 }

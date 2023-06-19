@@ -17,8 +17,13 @@ export class GenreService {
     return genre;
   }
 
-  async findAll(): Promise<Genre[]> {
-    const genres = await this.prismaService.genre.findMany();
+  async findAll(skip = 0, take = 0): Promise<Genre[]> {
+    if (!skip || skip < 0) skip = 0;
+    if (!take || take < 0) take = 10;
+    const genres = await this.prismaService.genre.findMany({
+      skip,
+      take,
+    });
     return genres;
   }
 
