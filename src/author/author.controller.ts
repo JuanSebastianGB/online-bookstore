@@ -10,10 +10,12 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
   ApiBody,
   ApiCreatedResponse,
   ApiNoContentResponse,
@@ -22,6 +24,7 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
+import { AuthGuard } from 'src/auth/auth.guard';
 import { AuthorService } from './author.service';
 import { CreateAuthorDto } from './dto/create-author.dto';
 import { UpdateAuthorDto } from './dto/update-author.dto';
@@ -29,6 +32,8 @@ import { Author } from './entities/author.entity';
 
 @ApiTags('authors')
 @Controller('author')
+@ApiBearerAuth()
+@UseGuards(AuthGuard)
 export class AuthorController {
   constructor(private readonly authorService: AuthorService) {}
 

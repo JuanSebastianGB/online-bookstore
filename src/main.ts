@@ -12,6 +12,7 @@ async function bootstrap() {
   );
 
   const config = new DocumentBuilder()
+    .addBearerAuth()
     .setTitle('book store')
     .setDescription('This is a rest api for book store')
     .setVersion('1.0')

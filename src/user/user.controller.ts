@@ -10,9 +10,11 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
   ApiBody,
   ApiCreatedResponse,
   ApiNotFoundResponse,
@@ -20,6 +22,7 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
+import { LocalGuard } from 'src/auth/local-auth.guard';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './entities/user.entity';
@@ -27,6 +30,8 @@ import { UserService } from './user.service';
 
 @ApiTags('users')
 @Controller('user')
+@ApiBearerAuth()
+@UseGuards(LocalGuard)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 

@@ -10,8 +10,16 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiBody, ApiOkResponse, ApiQuery, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOkResponse,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
+import { AuthGuard } from 'src/auth/auth.guard';
 import { Book } from 'src/book/entities/book.entity';
 import { CreateGenreDto } from './dto/create-genre.dto';
 import { UpdateGenreDto } from './dto/update-genre.dto';
@@ -19,6 +27,8 @@ import { GenreService } from './genre.service';
 
 @ApiTags('genres')
 @Controller('genre')
+@ApiBearerAuth()
+@UseGuards(AuthGuard)
 export class GenreController {
   constructor(private readonly genreService: GenreService) {}
 

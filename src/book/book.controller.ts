@@ -10,8 +10,10 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiCreatedResponse,
   ApiOkResponse,
@@ -19,6 +21,7 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
+import { AuthGuard } from 'src/auth/auth.guard';
 import { BookService } from './book.service';
 import { CreateBookDto } from './dto/create-book.dto';
 import { UpdateBookDto } from './dto/update-book.dto';
@@ -26,6 +29,8 @@ import { BookResponseDto } from './entities/book.entity';
 
 @Controller('book')
 @ApiTags('books')
+@ApiBearerAuth()
+@UseGuards(AuthGuard)
 export class BookController {
   constructor(private readonly bookService: BookService) {}
 
