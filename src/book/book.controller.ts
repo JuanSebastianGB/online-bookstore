@@ -1,6 +1,8 @@
+import { CacheKey } from '@nestjs/cache-manager';
 import {
   BadRequestException,
   Body,
+  CacheTTL,
   Controller,
   Delete,
   FileTypeValidator,
@@ -119,6 +121,8 @@ export class BookController {
     description: 'The books have been successfully retrieved.',
     type: [BookResponseDto],
   })
+  @CacheKey('books')
+  @CacheTTL(20)
   async findAll(@Query('skip') skip?: number, @Query('take') take?: number) {
     try {
       return await this.bookService.findAll(+skip, +take);
